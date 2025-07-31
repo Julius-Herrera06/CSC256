@@ -1,0 +1,63 @@
+/* Reset margins/padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Center container on page */
+body {
+  display: flex;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+  background-color: #fafafa;
+  padding: 10px;
+}
+
+/* Slideshow wrapper – very small max size */
+.slideshow-container {
+  position: relative;
+  width: 100%;
+  max-width: 150px;    /* never wider than 150px */
+  text-align: center;
+  margin: 0 auto;
+}
+
+/* Slide image – fill container but stay tiny */
+.slideshow-container img {
+  display: block;
+  width: 100%;           /* scale to container’s width */
+  height: auto;          /* keep aspect ratio */
+  max-width: 150px;      /* hard max 150px wide */
+  max-height: 100px;     /* hard max 100px tall */
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Prev/Next buttons */
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.8);
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+#prev {
+  left: 4px;
+}
+
+#next {
+  right: 4px;
+}
+
+.nav-btn:hover {
+  background: rgba(255,255,255,1);
+}
