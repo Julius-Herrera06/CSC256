@@ -1,11 +1,11 @@
-/* Reset margins/padding */
+/* Reset */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Center container on page */
+/* Center on page */
 body {
   display: flex;
   height: 100vh;
@@ -16,28 +16,28 @@ body {
   padding: 10px;
 }
 
-/* Slideshow wrapper – very small max size */
+/* Wrapper cap */
 .slideshow-container {
   position: relative;
   width: 100%;
-  max-width: 150px;    /* never wider than 150px */
+  max-width: 120px;    /* adjust as needed */
   text-align: center;
   margin: 0 auto;
 }
 
-/* Slide image – fill container but stay tiny */
+/* Image cap */
 .slideshow-container img {
   display: block;
-  width: 100%;           /* scale to container’s width */
-  height: auto;          /* keep aspect ratio */
-  max-width: 150px;      /* hard max 150px wide */
-  max-height: 100px;     /* hard max 100px tall */
+  width: 100%;
+  height: auto;
+  max-width: 120px;    /* hard max width */
+  max-height: 80px;    /* hard max height */
   object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-/* Prev/Next buttons */
+/* Nav buttons */
 .nav-btn {
   position: absolute;
   top: 50%;
@@ -49,15 +49,6 @@ body {
   border-radius: 4px;
   font-size: 0.8rem;
 }
-
-#prev {
-  left: 4px;
-}
-
-#next {
-  right: 4px;
-}
-
-.nav-btn:hover {
-  background: rgba(255,255,255,1);
-}
+#prev { left: 4px; }
+#next { right: 4px; }
+.nav-btn:hover { background: rgba(255,255,255,1); }
