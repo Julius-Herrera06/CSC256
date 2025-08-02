@@ -1,0 +1,22 @@
+/* Basic page styling */
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background: #f0f0f0;
+}
+h1 {
+  margin-bottom: 10px;
+}
+/* Style inputs and buttons uniformly */
+input, button {
+  margin: 5px 0;
+  padding: 8px;
+  font-size: 1rem;
+}
+/* Container for the sorted list */
+#movieList p {
+  margin: 2px 0;
+  padding: 6px;
+  background: #fff;
+  border-radius: 4px;
+}
