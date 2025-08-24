@@ -1,0 +1,273 @@
+<!-- Julius Herrera – W7 Game Form Assignment (UAT)
+     Purpose: Practice HTML forms + JS data extraction and on‑page output.
+     Notes: Clean formatting, comments, basic validation, and accessible UX.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Game Setup Form</title>
+  <style>
+    /* ====== Base Styles / Layout ====== */
+    :root {
+      --bg: #111418;
+      --panel: #1b1f24;
+      --muted: #9aa3ad;
+      --text: #ebeff3;
+      --accent: #f7c948;  /* gold */
+      --accent-2: #ff8c1a; /* orange hover */
+      --ring: #2a3138;
+      --ok: #2ecc71;
+      --err: #ff5c5c;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 20% -10%, #1a1f27 0%, var(--bg) 50%), var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: start center;
+      padding: 32px 16px 64px;
+    }
+
+    /* ====== Card / Container ====== */
+    .card {
+      width: min(720px, 100%);
+      background: linear-gradient(180deg, #1c2128, var(--panel));
+      border: 1px solid var(--ring);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.45);
+      overflow: hidden;
+    }
+    .card header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--ring);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .title {
+      margin: 0;
+      font-size: clamp(20px, 2.2vw, 28px);
+      letter-spacing: .2px;
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .sub {
+      margin: 0; color: var(--muted); font-size: 14px;
+    }
+
+    /* ====== Form ====== */
+    form {
+      padding: 22px 24px 8px;
+      display: grid; gap: 16px;
+    }
+    .row { display: grid; gap: 8px; }
+    label { font-weight: 600; }
+    .hint { color: var(--muted); font-size: 12px; }
+
+    input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--ring);
+      background: #0f1317;
+      color: var(--text);
+      outline: none;
+    }
+    input:focus, textarea:focus { box-shadow: 0 0 0 3px rgba(247,201,72,.15); border-color: var(--accent); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+    @media (max-width: 580px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ====== Buttons ====== */
+    .actions { display: flex; gap: 10px; }
+    button {
+      appearance: none;
+      border: 1px solid var(--ring);
+      background: var(--accent);
+      color: #1a1202;
+      font-weight: 800;
+      letter-spacing: .3px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform .05s ease, background .2s ease;
+    }
+    button:hover { background: var(--accent-2); }
+    button:active { transform: translateY(1px); }
+    .secondary { background: #20262c; color: var(--text); }
+
+    /* ====== Output Area ====== */
+    .out-wrap { padding: 16px 24px 24px; }
+    .out-label { margin: 0 0 8px; font-weight: 700; color: var(--muted); }
+    #output { font-family: var(--mono); min-height: 120px; resize: vertical; }
+
+    /* ====== Status / A11y ====== */
+    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .status { font-size: 13px; color: var(--muted); padding: 8px 24px 18px; }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+  </style>
+</head>
+<body>
+  <div class="card" role="region" aria-labelledby="title">
+    <header>
+      <!-- Page title and brief subtitle for UX clarity -->
+      <div>
+        <h1 id="title" class="title">Game Setup Form</h1>
+        <p class="sub">Enter your details, choose your loadout, then click <strong>Submit</strong> to output the values below.</p>
+      </div>
+    </header>
+
+    <!-- Accessible, validated form; pressing Enter submits -->
+    <form id="gameForm" novalidate>
+      <!-- Username (text) -->
+      <div class="row">
+        <label for="username">User Name</label>
+        <input id="username" name="username" type="text" required minlength="2" maxlength="24" placeholder="e.g., ninja" aria-describedby="u-hint" />
+        <div id="u-hint" class="hint">2–24 characters; letters/numbers/underscores recommended.</div>
+      </div>
+
+      <!-- Weapons (text with suggestions via datalist) -->
+      <div class="row">
+        <label for="weapons">Weapons</label>
+        <input id="weapons" name="weapons" type="text" list="weaponOptions" required placeholder="e.g., invisibility" aria-describedby="w-hint" />
+        <datalist id="weaponOptions">
+          <option value="invisibility"></option>
+          <option value="dual blades"></option>
+          <option value="energy bow"></option>
+          <option value="pulse rifle"></option>
+          <option value="medkit"></option>
+        </datalist>
+        <div id="w-hint" class="hint">Type anything or pick a suggestion.</div>
+      </div>
+
+      <!-- Health/Damage + Point Total side-by-side on wide screens -->
+      <div class="grid-2">
+        <div class="row">
+          <label for="health">Health/Damage</label>
+          <input id="health" name="health" type="number" inputmode="numeric" required min="0" max="9999" step="1" placeholder="e.g., 50" aria-describedby="h-hint" />
+          <div id="h-hint" class="hint">0–9999 (whole number).</div>
+        </div>
+        <div class="row">
+          <label for="points">Point Total</label>
+          <input id="points" name="points" type="number" inputmode="numeric" required min="0" max="999999" step="1" placeholder="e.g., 100" aria-describedby="p-hint" />
+          <div id="p-hint" class="hint">0–999,999 (whole number).</div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions" role="group" aria-label="Form actions">
+        <button id="submitBtn" type="submit">Submit</button>
+        <button id="resetBtn" class="secondary" type="button">Reset</button>
+        <button id="copyBtn" class="secondary" type="button">Copy Output</button>
+      </div>
+
+      <!-- Live status for screen readers / quick feedback -->
+      <p id="status" class="status" aria-live="polite"></p>
+    </form>
+
+    <!-- Output area (separate field on the same page as required) -->
+    <div class="out-wrap">
+      <p class="out-label">Output</p>
+      <textarea id="output" rows="6" readonly placeholder="Your submitted values will appear here…"></textarea>
+      <span id="liveRegion" class="sr-only" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <script>
+    // ====== Utility: Safe trim helper to avoid nulls ======
+    const getVal = (id) => (document.getElementById(id).value || "").trim();
+
+    // ====== DOM references ======
+    const form = document.getElementById('gameForm');
+    const statusEl = document.getElementById('status');
+    const outputEl = document.getElementById('output');
+    const liveRegion = document.getElementById('liveRegion');
+    const resetBtn = document.getElementById('resetBtn');
+    const copyBtn = document.getElementById('copyBtn');
+
+    // ====== Basic form validation function ======
+    function validate() {
+      // Use built‑in HTML validity API
+      const inputs = ['username', 'weapons', 'health', 'points'].map(id => document.getElementById(id));
+      let firstInvalid = null;
+      for (const input of inputs) {
+        if (!input.checkValidity()) {
+          firstInvalid = firstInvalid || input;
+          input.reportValidity();
+        }
+      }
+      if (firstInvalid) {
+        firstInvalid.focus();
+        setStatus('Please fix the highlighted field(s).', 'err');
+        return false;
+      }
+      return true;
+    }
+
+    // ====== Status setter with visual + SR feedback ======
+    function setStatus(msg, type = '') {
+      statusEl.textContent = msg;
+      statusEl.className = 'status' + (type ? ' ' + type : '');
+      // Mirror for screen readers
+      liveRegion.textContent = msg;
+    }
+
+    // ====== Submit handler: extract + pretty‑print to textarea ======
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!validate()) return;
+
+      const username = getVal('username');
+      const weapons  = getVal('weapons');
+      const health   = getVal('health');
+      const points   = getVal('points');
+
+      // Compose output in the specified format
+      const output = [
+        `User Name\t${username}`,
+        `Weapons\t${weapons}`,
+        `Health/Damage\t${health}`,
+        `Point Total\t${points}`
+      ].join('\n');
+
+      outputEl.value = output; // fill output field
+      setStatus('Submitted! Values printed to the output field.', 'ok');
+    });
+
+    // ====== Reset button: clears form + output ======
+    resetBtn.addEventListener('click', () => {
+      form.reset();
+      outputEl.value = '';
+      setStatus('Form and output cleared.');
+      document.getElementById('username').focus();
+    });
+
+    // ====== Copy Output to clipboard for quick grading/screenshots ======
+    copyBtn.addEventListener('click', async () => {
+      try {
+        if (!outputEl.value) {
+          setStatus('Nothing to copy yet — submit the form first.', 'err');
+          return;
+        }
+        await navigator.clipboard.writeText(outputEl.value);
+        setStatus('Output copied to clipboard!', 'ok');
+      } catch (err) {
+        setStatus('Clipboard not available. Select and copy manually.', 'err');
+      }
+    });
+
+    // ====== Optional: Demo defaults to speed up recording ======
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('username').value = 'ninja';
+      document.getElementById('weapons').value = 'invisibility';
+      document.getElementById('health').value = 50;
+      document.getElementById('points').value = 100;
+    });
+  </script>
+</body>
+</html>
