@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkers – Captures, Multi‑Captures & Kinging</title>
+  <style>
+    :root {
+      --bg: #0b0f14; --panel:#141a22; --light:#e8edf2; --dark:#2a3440;
+      --red:#e44; --black:#333; --select:#ffe08288; --legal:#7cff9a88;
+    }
+    html, body { height:100%; margin:0; background:var(--bg); color:var(--light); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+    .wrap{ max-width:980px; margin:20px auto; padding:12px; }
+    header{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--panel); border:1px solid #1f2833; border-radius:12px; padding:10px 14px; }
+    .status{ font-weight:700; }
+    main{ display:grid; grid-template-columns: 1fr auto; gap:16px; margin-top:16px; }
+
+    /* Board */
+    .board{ width:min(80vw,640px); aspect-ratio:1; display:grid; grid-template-columns:repeat(8,1fr); grid-template-rows:repeat(8,1fr); border:8px solid #222c38; border-radius:14px; overflow:hidden; user-select:none; box-shadow:0 10px 24px rgba(0,0,0,.35);}    
+    .square{ position:relative; display:grid; place-items:center; }
+    .light-square{ background:#c4d0db; }
+    .dark-square{ background:#6b7a8a; }
+
+    .piece{ width:80%; height:80%; border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:800; box-shadow:0 6px 10px rgba(0,0,0,.35), inset 0 4px 8px rgba(255,255,255,.1); }
+    .piece.red{ background: radial-gradient(circle at 35% 30%, #ff8a80, var(--red)); }
+    .piece.black{ background: radial-gradient(circle at 35% 30%, #777, var(--black)); }
+    .selected .piece{ outline:4px solid var(--select); }
+
+    .square.legal::after{ content:""; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:44%; height:44%; border-radius:50%; background:var(--legal); outline:2px solid #0b0f14; }
+
+    /* Controls */
+    aside{ background:var(--panel); border:1px solid #1f2833; border-radius:12px; padding:12px; width:260px; height:max-content; }
+    .row{ display:flex; align-items:center; justify-content:space-between; margin:8px 0; gap:10px; }
+    button{ background:#1c2530; color:var(--light); border:1px solid #2a3542; border-radius:10px; padding:8px 10px; cursor:pointer; font-weight:700; }
+    button:hover{ filter:brightness(1.08); }
+
+    @media (max-width: 900px){ main{ grid-template-columns:1fr; } aside{ width:100%; } .board{ width:100%; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>Checkers – Captures, Multi‑Captures & Kinging</div>
+      <div class="status" id="status">Red to move</div>
+    </header>
+
+    <main>
+      <div class="board" id="board" role="grid" aria-label="Checkers board 8 by 8"></div>
+      <aside aria-label="Controls">
+        <div class="row"><span>Reset</span><button id="resetBtn">Reset</button></div>
+        <div class="row"><label for="kingsToggle">Allow Kings</label><input type="checkbox" id="kingsToggle" checked></div>
+        <div class="row"><label for="hintsToggle">Show Hints</label><input type="checkbox" id="hintsToggle" checked></div>
+        <div class="row"><label for="forcedToggle">Forced Captures</label><input type="checkbox" id="forcedToggle" checked></div>
+        <small>When <b>Forced Captures</b> is on, you must take a jump if available and continue multi‑captures. When off, you may step even if jumps exist, and may end your turn after a single capture.</small>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    /* 
+       CHECKERS – Captures, Multi‑Captures, Kinging (with toggle)
+       
+       Toggle for Forced Captures
+       Multi‑capture chaining only enforced when toggle is ON
+       Kinging on back rank (if enabled)
+       Hints respect the forced toggle
+    */
+
+    const SIZE = 8;
+    const boardEl   = document.getElementById('board');
+    const statusEl  = document.getElementById('status');
+    const resetBtn  = document.getElementById('resetBtn');
+    const kingsCtl  = document.getElementById('kingsToggle');
+    const hintsCtl  = document.getElementById('hintsToggle');
+    const forcedCtl = document.getElementById('forcedToggle');
+
+    // Safe readers
+    const kingsEnabled  = () => (kingsCtl ? !!kingsCtl.checked : true);
+    const hintsEnabled  = () => (hintsCtl ? !!hintsCtl.checked : true);
+    const forcedEnabled = () => (forcedCtl ? !!forcedCtl.checked : true);
+
+    // Game state
+    let state = createEmptyState();
+    let turn = 'red';
+    let selected = null;
+    let forceChain = false; // only used when forcedEnabled() is true
+
+    // Build board squares once
+    const squares = [];
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const sq = document.createElement('div');
+        sq.className = 'square ' + ((r + c) % 2 === 0 ? 'light-square' : 'dark-square');
+        sq.setAttribute('role','gridcell');
+        sq.dataset.r = r; sq.dataset.c = c;
+        if ((r + c) % 2 === 1) { // playable
+          sq.addEventListener('click', onSquareClick);
+          sq.tabIndex = 0;
+          sq.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSquareClick.call(sq, e); } });
+        }
+        boardEl.appendChild(sq);
+        squares.push(sq);
+      }
+    }
+
+    if (resetBtn) resetBtn.addEventListener('click', init);
+    for (const ctl of [kingsCtl, hintsCtl, forcedCtl]) if (ctl) ctl.addEventListener('change', () => render());
+
+    init();
+
+    function init(){
+      state = createEmptyState();
+      for (let r = 0; r < 3; r++) placeRowPieces(r, 'red');
+      for (let r = SIZE - 3; r < SIZE; r++) placeRowPieces(r, 'black');
+      turn = 'red'; selected = null; forceChain = false; render(); runSanityTests();
+    }
+
+    function createEmptyState(){ return Array.from({length:SIZE}, () => Array(SIZE).fill(null)); }
+    function placeRowPieces(r, color){ for (let c = 0; c < SIZE; c++) if ((r + c) % 2 === 1) state[r][c] = { color, king:false }; }
+
+    function onSquareClick(){
+      const r = +this.dataset.r, c = +this.dataset.c; const cell = state[r][c];
+      // If we are in a forced chain, only allow continuing with same piece
+      if (forceChain && selected && (!cell || selected.r !== r || selected.c !== c)) return attemptMove(r, c);
+      if (cell && cell.color === turn){ if (forceChain && selected && (selected.r !== r || selected.c !== c)) return; selected = {r,c}; render(); return; }
+      attemptMove(r, c);
+    }
+
+    function attemptMove(tr, tc){
+      if (!selected) return;
+      const { r:sr, c:sc } = selected; const piece = state[sr][sc]; if (!piece){ selected=null; render(); return; }
+
+      const anyCaps = existsAnyCapture(turn);
+      const mustCapture = forcedEnabled() ? anyCaps : false;
+      const legalSteps = mustCapture ? [] : getLegalSteps(sr, sc);
+      const legalCaps  = getLegalCaptures(sr, sc);
+
+      const stepOK = legalSteps.some(([r,c]) => r===tr && c===tc);
+      const capOK  = legalCaps.some(m => m.tr===tr && m.tc===tc);
+      if (!stepOK && !capOK){ if (!forceChain) selected=null; render(); return; }
+
+      if (capOK){
+        const cap = legalCaps.find(m => m.tr===tr && m.tc===tc);
+        state[tr][tc] = piece; state[sr][sc] = null; state[cap.mr][cap.mc] = null; // execute jump
+        const promoted = maybeKing(tr, tc);
+        if (promoted){ forceChain=false; selected=null; return endTurn(); }
+
+        selected = { r:tr, c:tc };
+        const more = getLegalCaptures(tr, tc);
+        if (more.length && forcedEnabled()) { forceChain = true; return render(); }
+        // If forced is OFF, player may stop after single capture
+        forceChain = false; selected = null; return endTurn();
+      }
+
+      // simple step
+      state[tr][tc] = piece; state[sr][sc] = null; maybeKing(tr, tc); selected = null; endTurn();
+    }
+
+    function endTurn(){ turn = (turn==='red') ? 'black' : 'red'; render(); }
+
+    function getLegalSteps(r,c){
+      const p = state[r][c]; if (!p) return [];
+      const dirs = []; if (p.king || p.color==='red') dirs.push([1,-1],[1,1]); if (p.king || p.color==='black') dirs.push([-1,-1],[-1,1]);
+      const out = []; for (const [dr,dc] of dirs){ const nr=r+dr, nc=c+dc; if (inBounds(nr,nc) && darkSquare(nr,nc) && state[nr][nc]===null) out.push([nr,nc]); }
+      return out;
+    }
+
+    function getLegalCaptures(r,c){
+      const p = state[r][c]; if (!p) return [];
+      const dirs = []; if (p.king || p.color==='red') dirs.push([1,-1],[1,1]); if (p.king || p.color==='black') dirs.push([-1,-1],[-1,1]);
+      const caps = []; for (const [dr,dc] of dirs){ const mr=r+dr, mc=c+dc, tr=r+2*dr, tc=c+2*dc; if (inBounds(mr,mc) && inBounds(tr,tc) && darkSquare(tr,tc)){ const mid = state[mr][mc]; if (mid && mid.color!==p.color && state[tr][tc]===null) caps.push({tr,tc,mr,mc}); }}
+      return caps;
+    }
+
+    function existsAnyCapture(player){ for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++){ const p = state[r][c]; if (p && p.color===player && getLegalCaptures(r,c).length) return true; } return false; }
+
+    function maybeKing(r,c){ if (!kingsEnabled()) return false; const p = state[r][c]; if (!p || p.king) return false; if (p.color==='red' && r===SIZE-1){ p.king=true; return true; } if (p.color==='black' && r===0){ p.king=true; return true; } return false; }
+
+    function inBounds(r,c){ return r>=0 && r<SIZE && c>=0 && c<SIZE; }
+    function darkSquare(r,c){ return (r+c)%2===1; }
+
+    function render(){
+      for (const sq of squares){ sq.classList.remove('selected','legal'); sq.innerHTML=''; }
+      for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++){ const sq=getSquare(r,c); const p=state[r][c]; if (p){ const el=document.createElement('div'); el.className=`piece ${p.color}`; el.textContent=p.king?'K':''; el.addEventListener('click',()=>sq.click()); sq.appendChild(el);} }
+      const mustCapture = forcedEnabled() ? existsAnyCapture(turn) : false;
+      if (selected){ const {r,c}=selected; const sq=getSquare(r,c); sq.classList.add('selected'); if (hintsEnabled()){ if (mustCapture) for (const m of getLegalCaptures(r,c)) getSquare(m.tr,m.tc).classList.add('legal'); else for (const [tr,tc] of getLegalSteps(r,c)) getSquare(tr,tc).classList.add('legal'); } }
+      if (statusEl){ if (forceChain && forcedEnabled()) statusEl.textContent = cap(turn)+': continue capturing (same piece)'; else if (mustCapture) statusEl.textContent = cap(turn)+' to move (capture available)'; else statusEl.textContent = cap(turn)+' to move'; }
+    }
+
+    function getSquare(r,c){ return squares[r*SIZE + c]; }
+    function cap(s){ return s[0].toUpperCase()+s.slice(1); }
+
+    /* 
+       Minimal Console Tests
+   */
+    function runSanityTests(){
+      const tests = []; const assert = (name, cond) => tests.push({name, pass: !!cond});
+      assert('Board has 64 squares', boardEl.children.length === 64);
+      const count = {red:0, black:0}; for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++){ const p = state[r][c]; if (p) count[p.color]++; }
+      assert('Initial red pieces = 12', count.red === 12);
+      assert('Initial black pieces = 12', count.black === 12);
+      assert('#status element exists', !!statusEl);
+      assert('Forced toggle exists', !!forcedCtl);
+      const ok = tests.filter(t=>t.pass).length, total = tests.length; console.info(`${ok===total?'✅':'⚠️'} Sanity tests: ${ok}/${total} passed`); for (const t of tests){ if (!t.pass) console.warn('Test failed:', t.name); }
+    }
+  </script>
+</body>
+</html>
