@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GardenMax — Simulator</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-page="simulator">
+  <header class="shell">
+    <div class="brand"><div class="logo">🌱</div><h1>GardenMax</h1></div>
+    <nav class="tabs">
+      <a href="index.html" class="tab-link">Home</a>
+      <a href="simulator.html" class="tab-link">Simulator</a>
+      <a href="strategy.html" class="tab-link">Strategy</a>
+      <a href="contact.html" class="tab-link">Contact</a>
+    </nav>
+  </header>
+
+  <main class="shell">
+    <form id="calc-form" class="panel form">
+      <h2 class="section-title">Value Calculator</h2>
+
+      <div class="row">
+        <label class="field">
+          <span>Plant</span>
+          <select id="plant-select" class="input"></select>
+        </label>
+        <label class="field">
+          <span>Mode</span>
+          <select id="mode-select" class="input">
+            <option value="base">Use base value & base weight</option>
+            <option value="calibrate">Calibrate from a sample fruit</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="base-fields" class="row">
+        <label class="field"><span>Base Value (S)</span><input id="base-value" type="number" step="0.0001" class="input"/></label>
+        <label class="field"><span>Base Weight (kg)</span><input id="base-weight" type="number" step="0.001" class="input"/></label>
+      </div>
+
+      <div id="calibrate-fields" class="row hidden">
+        <label class="field"><span>Sample Price (S)</span><input id="sample-price" type="number" step="0.0001" class="input"/></label>
+        <label class="field"><span>Sample Weight (kg)</span><input id="sample-weight" type="number" step="0.001" class="input"/></label>
+      </div>
+
+      <div class="row">
+        <label class="field">
+          <span>Size / Weight Multiplier</span>
+          <input id="size-mult" type="range" min="0.5" max="12" step="0.05" value="1" class="range"/>
+          <div class="range-bar"><span>0.5×</span><strong id="size-mult-out">1.00×</strong><span>12×</span></div>
+        </label>
+        <label class="field">
+          <span>Growth Mutation</span>
+          <select id="growth-mutation" class="input"></select>
+        </label>
+      </div>
+
+      <fieldset class="mutations panel soft">
+        <legend>Environmental Mutations</legend>
+        <div id="env-mutations" class="env-grid"></div>
+        <div class="muted tiny" id="env-rules"></div>
+      </fieldset>
+
+      <div class="actions">
+        <button class="btn" type="submit">Calculate</button>
+        <button class="btn ghost" type="button" id="reset-btn">Reset</button>
+      </div>
+
+      <div class="result panel soft">
+        <div class="result-main">
+          <div class="result-title">Total Value</div>
+          <div id="result-total" class="result-number">—</div>
+        </div>
+        <div class="result-breakdown">
+          <div class="row2"><span>Crop value</span><strong id="br-crop">—</strong></div>
+          <div class="row2"><span>Growth mult</span><strong id="br-growth">—</strong></div>
+          <div class="row2"><span>Env mult</span><strong id="br-env">—</strong></div>
+          <div class="row2"><span>Weight</span><strong id="br-weight">—</strong></div>
+          <div class="row2"><span>Constant</span><strong id="br-const">—</strong></div>
+        </div>
+      </div>
+    </form>
+  </main>
+
+  <footer class="shell footer"><small>© GardenMax — fan project</small></footer>
+
+  <script type="module" src="js/common.js"></script>
+  <script type="module" src="js/sim.js"></script>
+</body>
+</html>

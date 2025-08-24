@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GardenMax — Home</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-page="home">
+  <header class="shell">
+    <div class="brand"><div class="logo">🌱</div><h1>GardenMax</h1></div>
+    <nav class="tabs">
+      <a href="index.html" class="tab-link">Home</a>
+      <a href="simulator.html" class="tab-link">Simulator</a>
+      <a href="strategy.html" class="tab-link">Strategy</a>
+      <a href="contact.html" class="tab-link">Contact</a>
+    </nav>
+  </header>
+
+  <main class="shell layout-one">
+    <section class="panel hero">
+      <div class="hero-copy">
+        <h2>Plan bigger harvests</h2>
+        <p>Use in-game items only. Pick your plant, stack buffs, and see the value.</p>
+        <a class="btn" href="simulator.html">Open Simulator</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="k">🌧️</div><div class="v"><span id="stat-weathers">—</span><small>weathers</small></div></div>
+        <div class="stat"><div class="k">🛠️</div><div class="v"><span id="stat-sprinklers">—</span><small>sprinklers</small></div></div>
+        <div class="stat"><div class="k">🪴</div><div class="v"><span id="stat-plants">—</span><small>plants</small></div></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Plant Gallery</h3>
+        <input id="plant-search" class="input" placeholder="Search plants…" />
+      </div>
+      <div id="plant-gallery" class="chip-grid"></div>
+      <small class="muted" id="plant-msg">Loading plants…</small>
+    </section>
+  </main>
+
+  <footer class="shell footer"><small>© GardenMax — fan project, in-game data only</small></footer>
+
+  <script type="module" src="js/common.js"></script>
+  <script type="module" src="js/home.js"></script>
+</body>
+</html>

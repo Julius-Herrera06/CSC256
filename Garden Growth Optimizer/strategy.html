@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GardenMax — Strategy</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-page="strategy">
+  <header class="shell">
+    <div class="brand"><div class="logo">🌱</div><h1>GardenMax</h1></div>
+    <nav class="tabs">
+      <a href="index.html" class="tab-link">Home</a>
+      <a href="simulator.html" class="tab-link">Simulator</a>
+      <a href="strategy.html" class="tab-link">Strategy</a>
+      <a href="contact.html" class="tab-link">Contact</a>
+    </nav>
+  </header>
+
+  <main class="shell layout-two">
+    <aside class="panel">
+      <h3>Sprinklers</h3>
+      <div id="sprinkler-grid" class="card-grid"></div>
+      <h3 style="margin-top:16px">Boosters</h3>
+      <div id="booster-grid" class="card-grid"></div>
+    </aside>
+
+    <section class="panel">
+      <h3>Weather & Effects</h3>
+      <div id="weather-grid" class="card-grid"></div>
+
+      <div class="panel soft" style="margin-top:14px">
+        <h3>Tips</h3>
+        <ul class="tips">
+          <li>Place one of each core sprinkler in the same spot to stack size/time windows.</li>
+          <li>Night + Meteor Shower + Heatwave can align Moonlit + Celestial + Sundried.</li>
+          <li>Use merchant sprinklers to target crop families (Flowers, Berries, Sweet, etc.).</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell footer"><small>© GardenMax — in-game data only</small></footer>
+
+  <script type="module" src="js/common.js"></script>
+  <script type="module" src="js/strategy.js"></script>
+</body>
+</html>
